@@ -25,6 +25,8 @@ locals {
   task_role_name                 = "${local.name_prefix}-task-role"
   ecs_execution_role_name        = "${local.name_prefix}-ecs-execution-role"
   ecs_task_execution_role_name   = "${local.name_prefix}-ecs-task-execution-role"
+  rds_native_backup_role_name = "${local.name_prefix}-rds-nativebackup-role"
+  rds_enhanced_monitoring_role_name = "${local.name_prefix}-rds-enhanced-monitoring-role"
 }
 
 ###############################################################################
@@ -136,7 +138,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_ssm" {
 
 # Create IAM Role for RDS Enhanced Monitoring
 resource "aws_iam_role" "rds_enhanced_monitoring_role" {
-  name = "rds-enhanced-monitoring-role"
+  name = local.rds_enhanced_monitoring_role_name
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -179,7 +181,7 @@ resource "aws_iam_role_policy_attachment" "rds_enhanced_monitoring" {
 
 # Create IAM Role for RDS Native Backup
 resource "aws_iam_role" "rds_nativebackup_role" {
-  name = "rds-nativebackup-role"
+  name = local.rds_native_backup_role_name
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -254,4 +256,6 @@ resource "aws_ssm_parameter" "rds_nativebackup_role_arn" {
   value = aws_iam_role.rds_nativebackup_role.arn
 
   tags = local.common_tags
+
+  depends_on = [ aws_iam_role.rds_nativebackup_role ]
 }

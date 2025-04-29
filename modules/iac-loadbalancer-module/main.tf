@@ -109,6 +109,15 @@ resource "aws_lb" "alb" {
   tags = merge(local.common_tags, {
     Name = local.alb_name
   })
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes = [
+      name,
+      security_groups,
+      subnets
+    ]
+  }
 }
 
 # Create ALB Listener for HTTP (handles HTTP traffic)

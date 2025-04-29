@@ -78,6 +78,12 @@ variable "mssql_db_name" {
   type        = string
 }
 
+# MSSQL Native Backup Role ARN
+variable "mssql_native_backup_role_arn" {
+  description = "ARN of the MSSQL native backup role"
+  type        = string
+}
+
 # Enable or Disable Multi-AZ Support for RDS MSSQL Instance
 variable "multi_az" {
   description = "Enable or disable Multi-AZ support for RDS MSSQL instance"

@@ -45,6 +45,14 @@ mssql_port = 1433
 # Postgres Port
 postgres_port = 5432
 
+# MSK Server Properties
+kafka_server_properties = <<EOT
+auto.create.topics.enable = true
+delete.topic.enable = true
+log.retention.hours = 168
+num.partitions = 2
+EOT
+
 # SSM Maintenance Window Policy ARN
 ssm_maintenance_window_policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonSSMMaintenanceWindowRole"
 
@@ -116,7 +124,7 @@ memory_target_value = 70
 db_instance_class = "db.t3.micro"
 
 # DB Storage Size
-db_storage_size = 50
+db_storage_size = 20
 
 # mssql DB Engine
 mssql_db_engine = "sqlserver-ex"
@@ -158,7 +166,7 @@ valkey_parameter_group_name = "default.valkey8"
 valkey_parameter_group_family = "valkey8"
 
 # Kafka Version
-kafka_version = "2.8.0"
+kafka_version = "2.8.1"
 
 # Valkey Engine
 valkey_engine = "valkey"
@@ -171,7 +179,10 @@ num_cache_clusters = 2
 valkey_port = 6379
 
 # Elasticache Node Type
-elasticache_node_type = "cache.t3.medium"
+elasticache_node_type = "cache.t3.micro"
+
+# Kafka Broker Node Count
+kafka_broker_nodes_count = 2
 
 # Kafka EBS Storage
 kafka_ebs_volume_size = 30

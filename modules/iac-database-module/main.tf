@@ -18,18 +18,18 @@ locals {
   mssql_db_name              = "${local.name_prefix}-mssql-db"
   mssql_db_instance_name     = "${local.name_prefix}-mssql-db-instance"
   mssql_db_subnet_group_name = "${local.name_prefix}-db-subnet-group"
-  mssql_secret_name          = "${local.name_prefix}-secret-payjack-db-secrtvt"
+  # mssql_secret_name          = "${local.name_prefix}-secret-payjack-db-secret-v8"
+  mssql_secret_name          = "${local.name_prefix}-secret"
 }
 
 # Local variables for postgres db
 locals {
-  postgres_secret_name          = "${local.name_prefix}-secret-payjack-postgres-secretvt"
+  # postgres_secret_name          = "${local.name_prefix}-secret-payjack-postgres-secret-v8"
+  postgres_secret_name          = "${local.name_prefix}-secret"
   postgres_db_name              = "${local.name_prefix}-postgres-db"
   postgres_db_instance_name     = "${local.name_prefix}-postgres-db-instance"
   postgres_db_subnet_group_name = "${local.name_prefix}-postgres-db-subnet-group"
 }
-
-
 
 #############################################################################
 
@@ -38,12 +38,24 @@ locals {
 resource "aws_db_subnet_group" "mssql" {
   name       = local.mssql_db_subnet_group_name
   subnet_ids = split(",", data.aws_ssm_parameter.db_private_subnet_ids.value)
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${local.mssql_db_subnet_group_name}"
+  })
 }
 
 # Create Postgres Subnet Group
 resource "aws_db_subnet_group" "postgres" {
   name       = local.postgres_db_subnet_group_name
   subnet_ids = split(",", data.aws_ssm_parameter.db_private_subnet_ids.value)
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${local.postgres_db_subnet_group_name}"
+  })
 }
 
 # Create a random password for mssql
@@ -66,15 +78,21 @@ resource "random_password" "postgres" {
   override_special = "_%#!$^&*"
 }
 
+# Random String Generator for Secret Name
+resource "random_id" "random_string" {
+  byte_length = 4
+}
+
 # Create A Secret Manager for RDS mssql Credentials
 resource "aws_secretsmanager_secret" "mssql" {
-  name        = local.mssql_secret_name
+  # name        = local.mssql_secret_name
+  name        = "${local.mssql_secret_name}-${random_id.random_string.hex}"
   description = "DB Credentials credentials for ${local.mssql_db_name}"
 
   tags = merge(
     local.common_tags,
     {
-      Name = "${local.mssql_db_name}-secret"
+      Name = "${local.mssql_secret_name}-${random_id.random_string.hex}"
   })
 }
 
@@ -91,7 +109,8 @@ resource "aws_secretsmanager_secret_version" "mssql" {
 
 # Create A Secret Manager for RDS Postgres Credentials
 resource "aws_secretsmanager_secret" "postgres" {
-  name        = local.postgres_secret_name
+  # name        = local.postgres_secret_name
+  name        = "${local.postgres_secret_name}-${random_id.random_string.hex}"
   description = "DB Credentials credentials for ${local.postgres_db_name}"
 
   tags = merge(
@@ -120,16 +139,12 @@ locals {
 locals {
   mssql_db_creds = jsondecode(data.aws_secretsmanager_secret_version.mssql_db_creds.secret_string)
 
-  # depends_on = [aws_secretsmanager_secret_version.mssql]
 }
-
-
 
 # Local variables for Postgres DB Credentials
 locals {
   postgres_db_creds = jsondecode(data.aws_secretsmanager_secret_version.postgres_db_creds.secret_string)
 
-  # depends_on = [aws_secretsmanager_secret_version.postgres]
 }
 
 ##############################################################################
@@ -169,16 +184,17 @@ data "aws_ssm_parameter" "rds_enhanced_monitoring_role_arn" {
   name = "/${local.name_prefix}/rds_enhanced_monitoring_role_arn"
 }
 # Retrieve RDS Native Backup Role ARN from SSM Parameter Store
-data "aws_ssm_parameter" "rds_nativebackup_role_arn" {
-  name = "/${local.name_prefix}/rds_nativebackup_role_arn"
+data "aws_iam_role" "rds_nativebackup_role_arn" {
+  name = "${local.name_prefix}-rds-nativebackup-role"
 }
 
 #--------------------------------------------------------------------------
 # Create MSSQL and Postgres DB Instances
 #--------------------------------------------------------------------------
+
 # Create Options Group for RDS MSSQL
 resource "aws_db_option_group" "mssql" {
-  name                     = "${local.mssql_db_option_group_name}-mssql-option-group"
+  name                     = "${local.mssql_db_option_group_name}"
   engine_name              = var.mssql_db_engine
   major_engine_version     = "15.00"
   option_group_description = "MSSQL Option Group for ${local.name_prefix}"
@@ -188,7 +204,7 @@ resource "aws_db_option_group" "mssql" {
 
     option_settings {
       name  = "IAM_ROLE_ARN"
-      value = data.aws_ssm_parameter.rds_nativebackup_role_arn.value
+      value = var.mssql_native_backup_role_arn
     }
   }
 }
@@ -219,7 +235,8 @@ resource "aws_db_instance" "mssql" {
 
   lifecycle {
     ignore_changes = [
-      monitoring_interval
+      monitoring_interval,
+      option_group_name
     ]
   }
 
@@ -236,6 +253,8 @@ resource "aws_db_instance" "postgres" {
   engine                 = var.postgres_db_engine
   instance_class         = var.db_instance_class
   allocated_storage      = var.db_storage_size
+  storage_encrypted = var.storage_encrypted
+  storage_type = var.storage_type
   db_name                = var.postgres_db_name
   username               = var.postgres_db_username
   password               = random_password.postgres.result

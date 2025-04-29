@@ -2,8 +2,10 @@
 locals {
   # Naming convention for resources
   name_prefix = "${var.environment}-${var.project_name}"
-  # az_suffix   = replace(element(data.aws_availability_zones.available.names, count.index), "${var.region}-", "")
-  az_suffix = [for az in data.aws_availability_zones.available.names : replace(az, var.region, "")]
+  az_suffix = [
+    for az in data.aws_availability_zones.available.names :
+    regex("[0-9]+[a-z]$", az)
+  ]
 
   # Common tags for all resources
   common_tags = {
@@ -17,7 +19,7 @@ locals {
   vpc_name            = "${local.name_prefix}-vpc"
   igw_name            = "${local.name_prefix}-igw"
   public_subnet_name  = "${local.name_prefix}-public-subnet"
-  private_subnet_name = "${local.name_prefix}-private-subnet"
+  private_subnet_name = "${local.name_prefix}-db-private-subnet"
   public_rtb_name     = "${local.name_prefix}-public-rtb"
   private_rtb_name    = "${local.name_prefix}-private-rtb"
   app_subnet_name     = "${local.name_prefix}-app-subnet"
@@ -58,6 +60,15 @@ resource "aws_vpc" "main" {
   })
 }
 
+# Tag Default Route Table as Do Not Use
+resource "aws_default_route_table" "do_not_use" {
+  default_route_table_id = aws_vpc.main.default_route_table_id
+
+  tags = merge(local.common_tags, {
+    Name = "Default Route Table"
+  })
+}
+
 # Create Internet Gateway and Attach to VPC
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_ssm_parameter.vpc_id.value
@@ -76,24 +87,22 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = merge(local.common_tags, {
-    Name  = "${local.public_subnet_name}-az-${local.az_suffix[count.index]}"
-    AName = element(data.aws_availability_zones.available.names, count.index)
-    AZ    = local.az_suffix[count.index]
+    Name                     = "${local.public_subnet_name}"
+    AName                    = "${local.public_subnet_name}-${data.aws_availability_zones.available.names[count.index]}"
     Type  = "Public"
   })
 }
 
 # Create 3 private App subnets
 resource "aws_subnet" "app_private" {
-  count             = var.availability_zones_count
+  count             = var.availability_zones_count 
   vpc_id            = aws_vpc.main.id
   cidr_block        = local.app_subnet_cidrs[count.index]
   availability_zone = element(data.aws_availability_zones.available.names, count.index)
 
   tags = merge(local.common_tags, {
-    Name                     = "${local.app_subnet_name}-az-${local.az_suffix[count.index]}"
-    AName                    = element(data.aws_availability_zones.available.names, count.index)
-    "kubernetes.io/role/elb" = "1" # For EKS if needed later
+    Name                     = "${local.app_subnet_name}"
+    AName                    = "${local.app_subnet_name}-${data.aws_availability_zones.available.names[count.index]}"
     "Type"                   = "Private"
   })
 }
@@ -106,8 +115,8 @@ resource "aws_subnet" "db_private" {
   availability_zone = element(data.aws_availability_zones.available.names, count.index)
 
   tags = merge(local.common_tags, {
-    Name                     = "${local.private_subnet_name}-az-${local.az_suffix[count.index]}"
-    AName                    = element(data.aws_availability_zones.available.names, count.index)
+    Name                     = "${local.private_subnet_name}"
+    AName                    = "${local.private_subnet_name}-${data.aws_availability_zones.available.names[count.index]}"
     "kubernetes.io/role/elb" = "1" # For EKS if needed later
     "Type"                   = "Private"
   })

@@ -102,6 +102,7 @@ module "compute" {
 # Create Database Module
 module "database" {
   source                   = "./modules/iac-database-module"
+  mssql_native_backup_role_arn = module.iam.native_backup_iam_role_arn
   db_instance_class        = var.db_instance_class
   mssql_db_engine          = var.mssql_db_engine
   db_storage_size          = var.db_storage_size
@@ -129,12 +130,14 @@ module "database" {
 module "services" {
   source                        = "./modules/iac-services-module"
   valkey_engine                 = var.valkey_engine
+  kafka_broker_nodes_count      = var.kafka_broker_nodes_count
   num_cache_clusters            = var.num_cache_clusters
   valkey_port                   = var.valkey_port
   valkey_parameter_group_family = var.valkey_parameter_group_family
   kafka_ebs_volume_size         = var.kafka_ebs_volume_size
   kafka_version                 = var.kafka_version
   kafka_instance_type           = var.kafka_instance_type
+  kafka_server_properties       = var.kafka_server_properties
   availability_zones_count      = var.availability_zones_count
   elasticache_node_type         = var.elasticache_node_type
   valkey_parameter_group_name   = var.valkey_parameter_group_name
@@ -144,5 +147,5 @@ module "services" {
   owner                         = var.owner
   region                        = var.region
 
-  depends_on = [module.networking, module.security]
+  depends_on = [module.networking, module.security, module.iam]
 }

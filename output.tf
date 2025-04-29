@@ -158,6 +158,12 @@ output "ecs_execution_role_arn" {
   value       = module.iam.ecs_execution_role_arn
 }
 
+# Output Native Backup IAM Role ARN
+output "native_backup_iam_role_arn" {
+  description = "ARN of Native Backup IAM Role"
+  value       = module.iam.native_backup_iam_role_arn
+}
+
 # ----------------------------
 # Load Balancer Outputs
 # ----------------------------

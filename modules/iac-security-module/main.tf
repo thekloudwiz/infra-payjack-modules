@@ -115,8 +115,8 @@ resource "aws_security_group" "alb_sg" {
   }
 
   ingress {
-    from_port   = var.http_port
-    to_port     = var.http_port
+    from_port   = var.https_port
+    to_port     = var.https_port
     protocol    = "tcp"
     cidr_blocks = [var.public_destination_cidr]
   }
@@ -133,6 +133,16 @@ resource "aws_security_group" "alb_sg" {
   })
 }
 
+# Create Security Group Rule to allow ALB SG to allow connection from ALB SG
+resource "aws_security_group_rule" "alb_to_alb" {
+  type                     = "ingress"
+  from_port                = var.http_port
+  to_port                  = var.http_port
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.alb_sg.id
+  security_group_id        = aws_security_group.alb_sg.id
+}
+
 # Create Security Group for ECS
 resource "aws_security_group" "ecs_sg" {
   name        = local.ecs_sg_name
@@ -143,12 +153,13 @@ resource "aws_security_group" "ecs_sg" {
     from_port       = var.http_port
     to_port         = var.http_port
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+    security_groups = [aws_security_group.alb_sg.id, aws_security_group.jump_sg.id]
+
   }
 
   ingress {
-    from_port       = var.http_port
-    to_port         = var.http_port
+    from_port       = var.https_port
+    to_port         = var.https_port
     protocol        = "tcp"
     security_groups = [aws_security_group.alb_sg.id]
   }
@@ -175,7 +186,8 @@ resource "aws_security_group" "mssql_sg" {
     from_port       = var.mssql_port
     to_port         = var.mssql_port
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_sg.id]
+    security_groups = [aws_security_group.ecs_sg.id, aws_security_group.jump_sg.id]
+
   }
 
   egress {
@@ -200,7 +212,8 @@ resource "aws_security_group" "postgres_sg" {
     from_port       = var.postgres_port
     to_port         = var.postgres_port
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_sg.id]
+    security_groups = [aws_security_group.ecs_sg.id, aws_security_group.jump_sg.id]
+
   }
 
   egress {
@@ -215,7 +228,7 @@ resource "aws_security_group" "postgres_sg" {
   })
 }
 
-# Create Security Group for Vlakey
+# Create Security Group for Valkey
 resource "aws_security_group" "valkey_sg" {
   name        = local.valkey_sg_name
   description = "Valkey SG: Allow traffic from ECS"
@@ -250,7 +263,8 @@ resource "aws_security_group" "kafka_sg" {
     from_port       = var.kafka_port
     to_port         = var.kafka_port
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_sg.id]
+    security_groups = [aws_security_group.ecs_sg.id, aws_security_group.jump_sg.id]
+
   }
 
   egress {
@@ -261,7 +275,7 @@ resource "aws_security_group" "kafka_sg" {
   }
 
   tags = merge(local.common_tags, {
-    Name = local.jump_sg_name
+    Name = local.kafka_sg_name
   })
 }
 

@@ -17,3 +17,8 @@ output "ecs_task_role_arn" {
 output "ecs_execution_role_arn" {
   value = aws_iam_role.ecs_execution_role.arn
 }
+
+# Output Native Backup IAM Role ARN
+output "native_backup_iam_role_arn" {
+  value = aws_iam_role.rds_nativebackup_role.arn
+}

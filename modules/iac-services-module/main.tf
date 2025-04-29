@@ -17,11 +17,14 @@ locals {
   cluster_name      = "${local.name_prefix}-kafka-cluster"
   valkey_cluster_id = "${local.name_prefix}-valkey-cluster"
   subnet_group_name = "${local.name_prefix}-subnet-group"
+  parameter_group_name = "${local.name_prefix}-parameter-group"
 }
 
 # Local variable to enable or disable cluster mode based on environment
 locals {
   cluster_mode_enabled = var.environment == "prod" ? true : false
+  db_private_subnet_ids = split(",", data.aws_ssm_parameter.db_private_subnet_ids.value)
+  broker_nodes_subnets = slice(local.db_private_subnet_ids, 0, 2)
 }
 
 #############################################################################
@@ -48,15 +51,21 @@ data "aws_ssm_parameter" "kafka_sg_id" {
 
 ###############################################################################
 
+# Create MSK Kafka Configuration
+resource "aws_msk_configuration" "kafka" {
+  name          = local.parameter_group_name
+  server_properties = var.kafka_server_properties
+}
+
 # Create MSK Kafka Cluster
 resource "aws_msk_cluster" "kafka" {
   cluster_name           = local.cluster_name
   kafka_version          = var.kafka_version
-  number_of_broker_nodes = var.availability_zones_count
+  number_of_broker_nodes = var.kafka_broker_nodes_count
 
   broker_node_group_info {
     instance_type   = var.kafka_instance_type
-    client_subnets  = split(",", data.aws_ssm_parameter.db_private_subnet_ids.value)
+    client_subnets  = local.broker_nodes_subnets
     security_groups = [data.aws_ssm_parameter.kafka_sg_id.value]
 
     storage_info {
@@ -73,22 +82,28 @@ resource "aws_msk_cluster" "kafka" {
     }
   }
 
-  client_authentication {
-    sasl {
-      scram = true
-    }
+  configuration_info {
+    arn      = aws_msk_configuration.kafka.arn
+    revision = 1
   }
 
   tags = merge(local.common_tags,
     {
       Name = "${local.cluster_name}"
   })
+
+  lifecycle {
+    ignore_changes = [
+      broker_node_group_info[0].security_groups
+    ]
+  }
 }
 
 # Create Elasticache Valkey Subnet Group
 resource "aws_elasticache_subnet_group" "valkey" {
   name       = local.subnet_group_name
   subnet_ids = split(",", data.aws_ssm_parameter.db_private_subnet_ids.value)
+  
   tags = merge(local.common_tags,
     {
       Name = "${local.subnet_group_name}"
@@ -103,7 +118,7 @@ resource "aws_elasticache_subnet_group" "valkey" {
 # Create Elasticache Valkey Parameter Group
 resource "aws_elasticache_parameter_group" "valkey" {
   name   = local.valkey_cluster_id
-  family = var.valkey_parameter_group_family
+  family =  var.valkey_parameter_group_family
 }
 
 # Create Elasticache Valkey Cluster
@@ -117,7 +132,7 @@ resource "aws_elasticache_replication_group" "valkey" {
   num_cache_clusters         = local.cluster_mode_enabled ? null : 1
   num_node_groups            = local.cluster_mode_enabled ? 1 : null
   replicas_per_node_group    = local.cluster_mode_enabled ? var.availability_zones_count : null
-  parameter_group_name       = var.valkey_parameter_group_name
+  parameter_group_name       = aws_elasticache_parameter_group.valkey.name
   port                       = var.valkey_port
   subnet_group_name          = aws_elasticache_subnet_group.valkey.name
   security_group_ids         = [data.aws_ssm_parameter.valkey_sg_id.value]
