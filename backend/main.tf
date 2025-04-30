@@ -1,7 +1,7 @@
 # Provider for AWS
 provider "aws" {
   region  = var.region
-  profile = "OTAssumeInfraBeginnerPermSet-509399591563"
+  # profile = "my_aws_profile" # Optional: Specify your AWS profile if needed
 }
 
 # Local variables for resource names

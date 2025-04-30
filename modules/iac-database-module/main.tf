@@ -18,14 +18,12 @@ locals {
   mssql_db_name              = "${local.name_prefix}-mssql-db"
   mssql_db_instance_name     = "${local.name_prefix}-mssql-db-instance"
   mssql_db_subnet_group_name = "${local.name_prefix}-db-subnet-group"
-  # mssql_secret_name          = "${local.name_prefix}-secret-payjack-db-secret-v8"
-  mssql_secret_name          = "${local.name_prefix}-secret"
+  mssql_secret_name          = "${local.name_prefix}mssql-secret"
 }
 
 # Local variables for postgres db
 locals {
-  # postgres_secret_name          = "${local.name_prefix}-secret-payjack-postgres-secret-v8"
-  postgres_secret_name          = "${local.name_prefix}-secret"
+  postgres_secret_name          = "${local.name_prefix}-postgres-secret"
   postgres_db_name              = "${local.name_prefix}-postgres-db"
   postgres_db_instance_name     = "${local.name_prefix}-postgres-db-instance"
   postgres_db_subnet_group_name = "${local.name_prefix}-postgres-db-subnet-group"
@@ -132,7 +130,7 @@ resource "aws_secretsmanager_secret_version" "postgres" {
 
 # Local variables for mssql DB Name
 locals {
-  mssql_db_option_group_name = "${local.name_prefix}-mssql-option-group"
+  mssql_db_option_group_name = "${local.name_prefix}-${random_id.random_string.hex}"
 }
 
 # Local variables for mssql DB Credentials
@@ -204,7 +202,7 @@ resource "aws_db_option_group" "mssql" {
 
     option_settings {
       name  = "IAM_ROLE_ARN"
-      value = var.mssql_native_backup_role_arn
+      value = data.aws_iam_role.rds_nativebackup_role_arn.arn
     }
   }
 }

@@ -5,7 +5,7 @@ region = "eu-west-1"
 project_name = "payjack"
 
 # Owner of the resources
-owner = "mimi"
+owner = "thekloudwiz"
 
 # Environment name
 environment = "dev"

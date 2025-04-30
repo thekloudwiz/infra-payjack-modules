@@ -44,8 +44,8 @@ data "aws_ssm_parameter" "alb_sg_id" {
 }
 
 # Retrieve Log Bucket From SSM Parameter Store
-data "aws_s3_bucket" "alb_logs" {
-  bucket = "${local.name_prefix}-alb-logs-bucket"
+data "aws_ssm_parameter" "alb_logs_bucket" {
+  name = "/${local.name_prefix}/alb-logs-bucket-name"
 }
 
 # Retrieve WAF ACL ARN from SSM Parameter Store
@@ -99,7 +99,7 @@ resource "aws_lb" "alb" {
   drop_invalid_header_fields = true
 
   access_logs {
-    bucket  = data.aws_s3_bucket.alb_logs.id
+    bucket  = data.aws_ssm_parameter.alb_logs_bucket.value
     prefix  = var.environment
     enabled = true
   }

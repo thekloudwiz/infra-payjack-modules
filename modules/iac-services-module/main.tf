@@ -84,7 +84,7 @@ resource "aws_msk_cluster" "kafka" {
 
   configuration_info {
     arn      = aws_msk_configuration.kafka.arn
-    revision = 1
+    revision = aws_msk_configuration.kafka.latest_revision
   }
 
   tags = merge(local.common_tags,
@@ -94,7 +94,10 @@ resource "aws_msk_cluster" "kafka" {
 
   lifecycle {
     ignore_changes = [
-      broker_node_group_info[0].security_groups
+      broker_node_group_info[0].security_groups,
+      configuration_info[0].revision,
+      broker_node_group_info[0].client_subnets,
+      broker_node_group_info[0].connectivity_info
     ]
   }
 }

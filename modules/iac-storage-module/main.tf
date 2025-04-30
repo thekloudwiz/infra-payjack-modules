@@ -17,7 +17,6 @@ locals {
   }
 }
 
-
 # Local variables for resource names
 locals {
   alb_logs_bucket_name = "${local.name_prefix}-alb-logs-bucket"
@@ -25,14 +24,19 @@ locals {
 
 ##############################################################################
 
+# Generate a random string for ALB logs bucket name suffix
+resource "random_id" "random_string" {
+  byte_length = 4
+}
+
 # Create S3 bucket for ALB logs
 resource "aws_s3_bucket" "alb_logs" {
-  bucket        = local.alb_logs_bucket_name
+  bucket        = "${local.alb_logs_bucket_name}-${random_id.random_string.hex}"
   force_destroy = true
 
   tags = merge(local.common_tags, {
-    Name = local.alb_logs_bucket_name
-  })
+    Name = "${local.alb_logs_bucket_name}-${random_id.random_string.hex}"
+    })
 }
 
 # Block public access
@@ -98,7 +102,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
 resource "aws_ssm_parameter" "alb_logs_bucket_name" {
   name  = "/${local.name_prefix}/alb-logs-bucket-name"
   type  = "String"
-  value = aws_s3_bucket.alb_logs.id
+  value = aws_s3_bucket.alb_logs.bucket
 
   depends_on = [aws_s3_bucket.alb_logs]
 }
