@@ -18,20 +18,22 @@ locals {
   valkey_cluster_id = "${local.name_prefix}-valkey-cluster"
   subnet_group_name = "${local.name_prefix}-subnet-group"
   parameter_group_name = "${local.name_prefix}-parameter-group"
+  msk_config_name   = "${local.name_prefix}-msk-config"
+  valkey_parameter_group_name = "${local.name_prefix}-valkey-parameter-group"
 }
 
 # Local variable to enable or disable cluster mode based on environment
 locals {
   cluster_mode_enabled = var.environment == "prod" ? true : false
-  db_private_subnet_ids = split(",", data.aws_ssm_parameter.db_private_subnet_ids.value)
-  broker_nodes_subnets = slice(local.db_private_subnet_ids, 0, 2)
+  rds_private_subnet_ids = split(",", data.aws_ssm_parameter.rds_private_subnet_ids.value)
+  broker_nodes_subnets = slice(local.rds_private_subnet_ids, 0, 2)
 }
 
 #############################################################################
 
 # Retrieve Data for Services Module
 # Retrieve Private Subnet IDs from SSM Parameter Store
-data "aws_ssm_parameter" "db_private_subnet_ids" {
+data "aws_ssm_parameter" "rds_private_subnet_ids" {
   name = "/${local.name_prefix}/db_subnet_ids"
 }
 
@@ -58,7 +60,8 @@ data "aws_ssm_parameter" "kafka_sg_id" {
 
 # Create MSK Kafka Configuration
 resource "aws_msk_configuration" "kafka" {
-  name          = local.parameter_group_name
+  name          = local.msk_config_name
+  description   = "MSK Kafka Configuration"
   server_properties = var.kafka_server_properties
 }
 
@@ -110,13 +113,15 @@ resource "aws_msk_cluster" "kafka" {
 # Create Elasticache Valkey Subnet Group
 resource "aws_elasticache_subnet_group" "valkey" {
   name       = local.subnet_group_name
-  subnet_ids = split(",", data.aws_ssm_parameter.db_private_subnet_ids.value)
+  subnet_ids = split(",", data.aws_ssm_parameter.rds_private_subnet_ids.value)
+  depends_on = [data.aws_ssm_parameter.rds_private_subnet_ids]
   
   tags = merge(local.common_tags,
     {
       Name = "${local.subnet_group_name}"
+      Type = "Private"
   })
-  depends_on = [data.aws_ssm_parameter.db_private_subnet_ids]
+  
 
   lifecycle {
     ignore_changes = [
@@ -128,7 +133,7 @@ resource "aws_elasticache_subnet_group" "valkey" {
 
 # Create Elasticache Valkey Parameter Group
 resource "aws_elasticache_parameter_group" "valkey" {
-  name   = local.valkey_cluster_id
+  name   = local.valkey_parameter_group_name
   family =  var.valkey_parameter_group_family
 }
 

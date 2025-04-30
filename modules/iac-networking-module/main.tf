@@ -19,7 +19,7 @@ locals {
   vpc_name            = "${local.name_prefix}-vpc"
   igw_name            = "${local.name_prefix}-igw"
   public_subnet_name  = "${local.name_prefix}-public-subnet"
-  private_subnet_name = "${local.name_prefix}-db-private-subnet"
+  private_subnet_name = "${local.name_prefix}-rds-subnet"
   public_rtb_name     = "${local.name_prefix}-public-rtb"
   private_rtb_name    = "${local.name_prefix}-private-rtb"
   app_subnet_name     = "${local.name_prefix}-app-subnet"
@@ -65,7 +65,7 @@ resource "aws_default_route_table" "do_not_use" {
   default_route_table_id = aws_vpc.main.default_route_table_id
 
   tags = merge(local.common_tags, {
-    Name = "Default Route Table"
+    Name = "Default Route Table: Do Not Use"
   })
 }
 

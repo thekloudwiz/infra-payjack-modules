@@ -9,17 +9,17 @@
 .terraform/
 
 # Override files
-# terraform.tfvars
-#terraform.tfvars.json
+terraform.tfvars
+terraform.tfvars.json
 
 # Ignore sensitive variable definitions
-#*.tfvars
+*.tfvars
 
 # Ignore plan output
 *.tfplan
 
 # Ignore backup files
-#*.backup
+*.backup
 
 # Ignore Backend Directory
 backend\*

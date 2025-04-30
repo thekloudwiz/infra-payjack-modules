@@ -27,6 +27,7 @@ locals {
   postgres_db_name              = "${local.name_prefix}-postgres-db"
   postgres_db_instance_name     = "${local.name_prefix}-postgres-db-instance"
   postgres_db_subnet_group_name = "${local.name_prefix}-postgres-db-subnet-group"
+  postgres_db_option_group_name = "${local.name_prefix}-postgres-db-option-group"
 }
 
 #############################################################################
@@ -202,10 +203,35 @@ resource "aws_db_option_group" "mssql" {
 
     option_settings {
       name  = "IAM_ROLE_ARN"
-      value = var.mssql_native_backup_role_arn
+      value = var.rds_native_backup_role_arn
     }
   }
 }
+
+# Create Parameter Group for RDS MSSQL
+resource "aws_db_parameter_group" "mssql" {
+  name        = "${local.name_prefix}-mssql-db-parameter-group"
+  family      = var.mssql_parameter_group_family
+  description = "Parameter Group for ${local.mssql_db_name}"
+
+  parameter {
+    name  = "max degree of parallelism"
+    value = var.max_num_parallelism
+  }
+
+  parameter {
+    name  = "cost threshold for parallelism"
+    value = var.max_threshold_parallelism
+  }
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${local.mssql_db_name}-parameter-group"
+  })
+}
+
+# Create Parameter Group for RDS Postgres
 
 # Create RDS MSSQL DB Instance
 resource "aws_db_instance" "mssql" {
@@ -222,6 +248,7 @@ resource "aws_db_instance" "mssql" {
   password                     = local.mssql_db_creds.password
   vpc_security_group_ids       = [data.aws_ssm_parameter.mssql_sg_id.value]
   db_subnet_group_name         = aws_db_subnet_group.mssql.name
+  parameter_group_name = aws_db_parameter_group.mssql.name
   backup_retention_period      = 3
   skip_final_snapshot          = var.skip_final_snapshot
   storage_encrypted            = var.storage_encrypted
@@ -247,6 +274,42 @@ resource "aws_db_instance" "mssql" {
   })
 }
 
+# # Create Options Group for RDS Postgres
+# resource "aws_db_option_group" "postgres" {
+#   name                     = "${local.postgres_db_option_group_name}"
+#   engine_name              = var.postgres_db_engine
+#   major_engine_version     = "15.00"
+#   option_group_description = "Option Group for ${local.postgres_db_name}"
+
+#   option {
+#     option_name = "SQLSERVER_BACKUP_RESTORE"
+
+#     option_settings {
+#       name  = "IAM_ROLE_ARN"
+#       value = var.rds_native_backup_role_arn
+#     }
+#   }
+# }
+
+# Create Parameter Group for RDS Postgres
+resource "aws_db_parameter_group" "postgres" {
+  name        = "${local.postgres_db_name}-parameter-group"
+  family      = var.postgres_parameter_group_family
+  description = "Parameter Group for ${local.postgres_db_name}"
+
+  parameter {
+    name  = "max_connections"
+    value = var.max_connections
+    apply_method = "pending-reboot"
+  }
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${local.postgres_db_name}-parameter-group"
+  })
+}
+
 # Create RDS Postgres DB Instance
 resource "aws_db_instance" "postgres" {
   identifier             = local.postgres_db_instance_name
@@ -260,6 +323,7 @@ resource "aws_db_instance" "postgres" {
   password               = random_password.postgres.result
   vpc_security_group_ids = [data.aws_ssm_parameter.postgres_sg_id.value]
   db_subnet_group_name   = aws_db_subnet_group.postgres.name
+  parameter_group_name = aws_db_parameter_group.postgres.name
   skip_final_snapshot    = var.skip_final_snapshot
   publicly_accessible    = false
   multi_az               = var.multi_az

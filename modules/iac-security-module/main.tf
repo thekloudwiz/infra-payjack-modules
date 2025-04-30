@@ -176,6 +176,19 @@ resource "aws_security_group" "ecs_sg" {
   })
 }
 
+# Create Security Group Rule to allow traffic from Proxy Subnets
+# to ECS Security Group on ports
+resource "aws_security_group_rule" "allow_proxy_subnets" {
+  description = "Allow traffic from proxy subnets"
+  type              = "ingress"
+  from_port         = var.proxy_port_start
+  to_port           = var.proxy_port_end
+  protocol          = "tcp"
+  security_group_id = aws_security_group.ecs_sg.id
+
+  cidr_blocks = var.proxy_cidr_blocks
+}
+
 # Create Security Group for mssql
 resource "aws_security_group" "mssql_sg" {
   name        = local.mssql_sg_name
@@ -213,7 +226,6 @@ resource "aws_security_group" "postgres_sg" {
     to_port         = var.postgres_port
     protocol        = "tcp"
     security_groups = [aws_security_group.ecs_sg.id, aws_security_group.jump_sg.id]
-
   }
 
   egress {
@@ -238,7 +250,7 @@ resource "aws_security_group" "valkey_sg" {
     from_port       = var.valkey_port
     to_port         = var.valkey_port
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_sg.id]
+    security_groups = [aws_security_group.ecs_sg.id, aws_security_group.jump_sg.id]
   }
 
   egress {
@@ -278,6 +290,7 @@ resource "aws_security_group" "kafka_sg" {
     Name = local.kafka_sg_name
   })
 }
+
 
 # -----------------------------------------------------------------
 

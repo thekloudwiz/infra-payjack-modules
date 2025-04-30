@@ -192,3 +192,30 @@ kafka_port = 9092
 
 # Kafka Instance Type
 kafka_instance_type = "kafka.t3.small"
+
+# MSSQL Parameter Group Family
+mssql_parameter_group_family = "sqlserver-ex-15.0"
+
+# Postgres Parameter Group Family
+postgres_parameter_group_family = "postgres17"
+
+# Max Connections
+max_connections = 100
+
+# Max Degree of Parallelism
+max_num_parallelism = 8
+
+# Max Threshold of Parallelism
+max_threshold_parallelism = 16
+
+# Proxy Port Start
+proxy_port_start = 80
+
+# Proxy Port End
+proxy_port_end = 20000
+
+# Proxy CIDR Blocks
+proxy_cidr_blocks = [
+  "172.31.7.20/32",
+  "172.31.32.21/32"
+]

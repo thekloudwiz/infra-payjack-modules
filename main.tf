@@ -30,6 +30,9 @@ module "security" {
   mssql_port              = var.mssql_port
   http_port               = var.http_port
   https_port              = var.https_port
+  proxy_port_start = var.proxy_port_start
+  proxy_port_end   = var.proxy_port_end
+  proxy_cidr_blocks = var.proxy_cidr_blocks
   my_ip                   = var.my_ip
   valkey_port             = var.valkey_port
   kafka_port              = var.kafka_port
@@ -102,12 +105,17 @@ module "compute" {
 # Create Database Module
 module "database" {
   source                   = "./modules/iac-database-module"
-  mssql_native_backup_role_arn = module.iam.native_backup_iam_role_arn
+  rds_native_backup_role_arn = module.iam.rds_native_backup_iam_role_arn
   db_instance_class        = var.db_instance_class
   mssql_db_engine          = var.mssql_db_engine
   db_storage_size          = var.db_storage_size
   mssql_db_username        = var.mssql_db_username
   mssql_db_name            = var.mssql_db_name
+  mssql_parameter_group_family = var.mssql_parameter_group_family
+  postgres_parameter_group_family = var.postgres_parameter_group_family
+  max_connections = var.max_connections
+  max_num_parallelism = var.max_num_parallelism
+  max_threshold_parallelism = var.max_threshold_parallelism
   postgres_db_engine       = var.postgres_db_engine
   postgres_db_username     = var.postgres_db_username
   postgres_db_name         = var.postgres_db_name

@@ -381,3 +381,51 @@ variable "key_name" {
   description = "Name of the EC2 key pair"
   type        = string
 }
+
+# MSSQL Parameter Group Family
+variable "mssql_parameter_group_family" {
+  description = "Parameter group family for the cluster"
+  type        = string
+}
+
+# Postgres Parameter Group Family
+variable "postgres_parameter_group_family" {
+  description = "Parameter group family for the cluster"
+  type        = string
+}
+
+# Max Degree of Parallelism
+variable "max_num_parallelism" {
+  description = "Max degree of parallelism"
+  type        = string
+}
+
+# Max Threshold of Parallelism
+variable "max_threshold_parallelism" {
+  description = "Max threshold of parallelism"
+  type        = string
+}
+
+# Maximum Number of Connections
+variable "max_connections" {
+  description = "Maximum number of connections"
+  type        = string
+}
+
+# Proxy Port Start
+variable "proxy_port_start" {
+  description = "value of proxy port start"
+  type        = number
+}
+
+# Proxy Port End
+variable "proxy_port_end" {
+  description = "value of proxy port end"
+  type        = number
+}
+
+# Proxy CIDR Blocks
+variable "proxy_cidr_blocks" {
+  description = "value of proxy destination cidr"
+  type        = list(string)
+}

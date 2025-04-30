@@ -79,7 +79,7 @@ variable "mssql_db_name" {
 }
 
 # MSSQL Native Backup Role ARN
-variable "mssql_native_backup_role_arn" {
+variable "rds_native_backup_role_arn" {
   description = "ARN of the MSSQL native backup role"
   type        = string
 }
@@ -114,10 +114,38 @@ variable "postgres_db_engine" {
   type        = string
 }
 
-
 # Postgres DB Name
 variable "postgres_db_name" {
   description = "Name of the database"
   type        = string
 }
 
+# MSSQL Parameter Group Family
+variable "mssql_parameter_group_family" {
+  description = "Parameter group family for the cluster"
+  type        = string
+}
+
+# Postgres Parameter Group Family
+variable "postgres_parameter_group_family" {
+  description = "Parameter group family for the cluster"
+  type        = string
+}
+
+# Max Degree of Parallelism
+variable "max_num_parallelism" {
+  description = "Max degree of parallelism"
+  type        = string
+}
+
+# Max Threshold of Parallelism
+variable "max_threshold_parallelism" {
+  description = "Max threshold of parallelism"
+  type        = string
+}
+
+# Maximum Number of Connections
+variable "max_connections" {
+  description = "Maximum number of connections"
+  type        = string
+}

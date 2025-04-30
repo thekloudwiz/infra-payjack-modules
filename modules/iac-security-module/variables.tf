@@ -83,3 +83,21 @@ variable "kafka_port" {
   description = "value of kafka port"
   type        = number
 }
+
+# Proxy Port Start
+variable "proxy_port_start" {
+  description = "value of proxy port start"
+  type        = number
+}
+
+# Proxy Port End
+variable "proxy_port_end" {
+  description = "value of proxy port end"
+  type        = number
+}
+
+# Proxy CIDR Blocks
+variable "proxy_cidr_blocks" {
+  description = "value of proxy destination cidr"
+  type        = list(string)
+}
