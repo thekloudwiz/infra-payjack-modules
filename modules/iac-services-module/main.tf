@@ -39,7 +39,12 @@ data "aws_ssm_parameter" "kafa_sg_id" {
   name = "/${local.name_prefix}/kafka_sg_id"
 }
 
-# Retrieve Elasticache SG Group IDs from SSM Parameter Store
+# Retrieve VPC ID from SSM
+data "aws_ssm_parameter" "vpc_id" {
+  name = "/${local.name_prefix}/vpc_id"
+}
+
+# Retrieve Elasticache Valkey SG Group IDs from SSM Parameter Store
 data "aws_ssm_parameter" "valkey_sg_id" {
   name = "/${local.name_prefix}/valkey_sg_id"
 }
@@ -114,6 +119,9 @@ resource "aws_elasticache_subnet_group" "valkey" {
   depends_on = [data.aws_ssm_parameter.db_private_subnet_ids]
 
   lifecycle {
+    ignore_changes = [
+      subnet_ids
+    ]
     create_before_destroy = true
   }
 }
@@ -146,6 +154,7 @@ resource "aws_elasticache_replication_group" "valkey" {
     ignore_changes = [
       num_cache_clusters,
       node_type,
+      security_group_ids
     ]
   }
 

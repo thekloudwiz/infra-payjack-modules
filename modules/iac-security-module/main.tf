@@ -337,7 +337,7 @@ resource "aws_ssm_parameter" "postgres_sg_id" {
   tags = local.common_tags
 }
 
-# Save Redis Security Group ID in SSM Parameter Store
+# Save Ealsticache Valkey Security Group ID in SSM Parameter Store
 resource "aws_ssm_parameter" "valkey_sg_id" {
   name  = "/${local.name_prefix}/valkey_sg_id"
   type  = "String"
