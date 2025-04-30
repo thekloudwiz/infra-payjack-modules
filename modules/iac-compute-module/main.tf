@@ -73,7 +73,9 @@ data "aws_ssm_parameter" "alb_target_group_arn" {
 }
 
 
-###############################################################################
+# ---------------------------------------------------------------------
+# Local Variablels for Compute Module
+# ---------------------------------------------------------------------
 
 # Local Variables for Naming Conventions
 locals {
@@ -102,13 +104,18 @@ locals {
   ecs_cluster_name    = "${local.name_prefix}-ecs-cluster"
 }
 
-###############################################################################
+locals {
+  jump_subnet_id = nonsensitive(data.aws_ssm_parameter.jumpbox_subnet.value)
+}
 
+# ---------------------------------------------------------------------------------
 # Jump Box EC2 Instance
+# ---------------------------------------------------------------------------------
+# Create a Jump Box EC2 instance
 resource "aws_instance" "jump_box" {
   ami                  = data.aws_ami.ubuntu.id
   instance_type        = var.ec2_instance_type
-  subnet_id            = data.aws_ssm_parameter.jumpbox_subnet.value
+  subnet_id            = local.jump_subnet_id
   iam_instance_profile = data.aws_iam_instance_profile.ec2_profile.name
   security_groups      = [data.aws_ssm_parameter.jump_sg_id.value]
 
@@ -121,7 +128,8 @@ resource "aws_instance" "jump_box" {
       ami,
       security_groups,
       user_data,
-      tags
+      tags,
+      subnet_id
     ]
   }
 
@@ -130,8 +138,10 @@ resource "aws_instance" "jump_box" {
       Name = "${local.jump_server_name}"
   })
 }
+
 # -----------------------------------------------------------------------------------------
-# KMS Key for ECR
+# ECS Resource Definitions
+# -----------------------------------------------------------------------------------------
 # Create KMS Key for ECR
 resource "aws_kms_key" "ecr_key" {
   description             = "KMS key for ${local.ecr_repository_name}"
@@ -157,8 +167,6 @@ resource "aws_kms_alias" "ecr_key_alias" {
   name          = "alias/${local.name_prefix}-ecr-keyy"
   target_key_id = aws_kms_key.ecr_key.key_id
 }
-
-# -------------------------------------------------------------------------------------------
 
 # Create ECR Repository
 resource "aws_ecr_repository" "ecr_repo" {
@@ -189,7 +197,6 @@ resource "aws_ecr_lifecycle_policy" "repo_policy" {
   policy = file("${path.root}/policies/ecr-lifecycle-policy.json")
 }
 
-# -------------------------------------------------------------------------------------------
 # Add service discovery
 resource "aws_service_discovery_private_dns_namespace" "ecs" {
   name        = "${local.name_prefix}.local"
@@ -241,7 +248,7 @@ resource "aws_service_discovery_service" "ecs" {
     ]
   }
 }
-# -------------------------------------------------------------------------------------------
+
 # ECS Cluster
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = local.ecs_cluster_name
@@ -282,7 +289,8 @@ resource "aws_ecs_task_definition" "task" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"             = "/ecs/${local.name_prefix}"
+          "awslogs-group"             = "/ecs/${local.name_prefix}-group"
+          "awslogs-create-group"      = "true"
           "awslogs-region"            = var.region
           "awslogs-stream-prefix"     = "ecs"
           "awslogs-multiline-pattern" = "^\\[\\d{4}-\\d{2}-\\d{2}" # For better log parsing

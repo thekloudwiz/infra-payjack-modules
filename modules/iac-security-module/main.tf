@@ -286,7 +286,7 @@ resource "aws_security_group" "kafka_sg" {
 # Save WAF ACL ARN in SSM Parameter Store
 resource "aws_ssm_parameter" "waf_acl_arn" {
   name  = "/${local.name_prefix}/waf_acl_arn"
-  type  = "String"
+  type  = "SecureString"
   value = aws_wafv2_web_acl.alb_waf.arn
 
   tags = local.common_tags
