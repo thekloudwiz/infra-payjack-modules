@@ -207,7 +207,7 @@ resource "aws_db_option_group" "mssql" {
   }
 }
 
-# Create MSSQL DB Instance
+# Create RDS MSSQL DB Instance
 resource "aws_db_instance" "mssql" {
   identifier                   = local.mssql_db_instance_name
   allocated_storage            = var.db_storage_size
@@ -218,7 +218,7 @@ resource "aws_db_instance" "mssql" {
   engine_version               = "15.00.4345.5.v1"
   instance_class               = var.db_instance_class
   multi_az                     = var.multi_az
-  username                     = local.mssql_db_creds.username
+  username                     = var.mssql_db_username
   password                     = local.mssql_db_creds.password
   vpc_security_group_ids       = [data.aws_ssm_parameter.mssql_sg_id.value]
   db_subnet_group_name         = aws_db_subnet_group.mssql.name
@@ -234,7 +234,9 @@ resource "aws_db_instance" "mssql" {
   lifecycle {
     ignore_changes = [
       monitoring_interval,
-      option_group_name
+      option_group_name,
+      monitoring_role_arn,
+      performance_insights_enabled
     ]
   }
 

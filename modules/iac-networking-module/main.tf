@@ -193,7 +193,9 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_ssm_parameter.public_rt_id.value
 }
 
+# -----------------------------------------------------------------------
 # Save Networking Credentials in SSM Parameter Store
+# -----------------------------------------------------------------------
 
 # Store VPC ID in SSM
 resource "aws_ssm_parameter" "vpc_id" {
@@ -213,6 +215,13 @@ resource "aws_ssm_parameter" "public_subnet_ids" {
   depends_on = [aws_subnet.public]
 
   tags = local.common_tags
+}
+
+# Store First Public Subnet ID For JumpBox
+resource "aws_ssm_parameter" "jumpbox_subnet" {
+  name  = "/${local.name_prefix}/jumpbox_subnet"
+  type  = "String"
+  value = aws_subnet.public[0].id
 }
 
 # Store Private Subnet IDs in SSM

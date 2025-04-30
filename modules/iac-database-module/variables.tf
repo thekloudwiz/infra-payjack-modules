@@ -66,7 +66,7 @@ variable "mssql_port" {
   type        = number
 }
 
-# Username
+# MSSQL DB Username
 variable "mssql_db_username" {
   description = "Username for the database"
   type        = string

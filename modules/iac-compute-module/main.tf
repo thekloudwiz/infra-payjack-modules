@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------
+# Data Sources Needed for Compute Module
+# ---------------------------------------------------------------------
+
 # Select latest available version of Ubuntu OS for use as a base image
 data "aws_ami" "ubuntu" {
   most_recent = true
@@ -25,16 +29,22 @@ data "aws_ssm_parameter" "vpc_id" {
   name = "/${local.name_prefix}/vpc_id"
 }
 
-# Retrieve Subnet IDS from SSM Parameter Store
+# Retrieve Public Subnet IDS from SSM Parameter Store
 data "aws_ssm_parameter" "public_subnet_ids" {
   name = "/${local.name_prefix}/public_subnet_ids"
 }
 
-# Retrieve Private Subnet IDs from SSM Parameter Store
-data "aws_ssm_parameter" "app_private_subnet_ids" {
+# Retrieve JumpBox Subnet from SSM Parameter Store
+data "aws_ssm_parameter" "jumpbox_subnet" {
+  name  = "/${local.name_prefix}/jumpbox_subnet"
+}
+
+# Retrieve App Subnet IDS from SSM Parameter Store
+data "aws_ssm_parameter" "app_subnet_ids" {
   name = "/${local.name_prefix}/app_subnet_ids"
 }
 
+# Retrieve EC2 Instance Profile
 data "aws_iam_instance_profile" "ec2_profile" {
   name = "${local.name_prefix}-ec2-profile"
 }
@@ -50,11 +60,6 @@ data "aws_ssm_parameter" "ecs_task_role_arn" {
 # Retrieve ECS Execution Role ARN From SSM Parameter Store
 data "aws_ssm_parameter" "ecs_execution_role_arn" {
   name = "/${local.name_prefix}/ecs_execution_role_arn"
-}
-
-# Retrieve App Subnet IDS from SSM Parameter Store
-data "aws_ssm_parameter" "app_subnet_ids" {
-  name = "/${local.name_prefix}/app_subnet_ids"
 }
 
 # Retrieve ECS SG ID from SSM Parameter Store
@@ -103,10 +108,9 @@ locals {
 resource "aws_instance" "jump_box" {
   ami                  = data.aws_ami.ubuntu.id
   instance_type        = var.ec2_instance_type
-  subnet_id            = split(",", data.aws_ssm_parameter.public_subnet_ids.value)[0]
+  subnet_id            = data.aws_ssm_parameter.jumpbox_subnet.value
   iam_instance_profile = data.aws_iam_instance_profile.ec2_profile.name
   security_groups      = [data.aws_ssm_parameter.jump_sg_id.value]
-  key_name             = var.key_name
 
   credit_specification {
     cpu_credits = var.cpu_credits
@@ -114,6 +118,7 @@ resource "aws_instance" "jump_box" {
 
   lifecycle {
     ignore_changes = [
+      ami,
       security_groups,
       user_data,
       tags
