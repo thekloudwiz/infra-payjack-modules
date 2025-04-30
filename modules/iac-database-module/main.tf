@@ -202,7 +202,7 @@ resource "aws_db_option_group" "mssql" {
 
     option_settings {
       name  = "IAM_ROLE_ARN"
-      value = data.aws_iam_role.rds_nativebackup_role_arn.arn
+      value = var.mssql_native_backup_role_arn
     }
   }
 }
