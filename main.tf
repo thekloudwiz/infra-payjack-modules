@@ -11,16 +11,16 @@ module "storage" {
 
 # Create Networking Environment
 module "networking" {
-  source                              = "./modules/iac-networking-module"
-  vpc_cidr                            = var.vpc_cidr
-  public_route_table_destination_cidr = var.public_route_table_destination_cidr
-  allowed_cidr_blocks                 = var.allowed_cidr_blocks
-  availability_zones_count            = var.availability_zones_count
-  environment                         = var.environment
-  project_name                        = var.project_name
-  managed_by                          = var.managed_by
-  owner                               = var.owner
-  region                              = var.region
+  source                   = "./modules/iac-networking-module"
+  vpc_cidr                 = var.vpc_cidr
+  allowed_cidr_blocks      = var.allowed_cidr_blocks
+  rtb_cidr_block = var.rtb_cidr_block
+  availability_zones_count = var.availability_zones_count
+  environment              = var.environment
+  project_name             = var.project_name
+  managed_by               = var.managed_by
+  owner                    = var.owner
+  region                   = var.region
 }
 
 # Create Security Module
@@ -37,7 +37,7 @@ module "security" {
   valkey_port             = var.valkey_port
   kafka_port              = var.kafka_port
   postgres_port           = var.postgres_port
-  public_destination_cidr = var.public_destination_cidr
+  allowed_cidr_blocks = var.allowed_cidr_blocks
   environment             = var.environment
   project_name            = var.project_name
   managed_by              = var.managed_by

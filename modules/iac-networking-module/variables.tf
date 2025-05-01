@@ -41,9 +41,9 @@ variable "allowed_cidr_blocks" {
   type        = list(string)
 }
 
-# Public Route
-variable "public_route_table_destination_cidr" {
-  description = "Destination CIDR block for public subnet route table"
+# RTB CIDR Block
+variable "rtb_cidr_block" {
+  description = "List of allowed CIDR blocks for ALB access"
   type        = string
 }
 

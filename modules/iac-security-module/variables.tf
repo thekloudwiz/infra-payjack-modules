@@ -55,9 +55,9 @@ variable "https_port" {
 }
 
 # Public Destination CIDR
-variable "public_destination_cidr" {
+variable "allowed_cidr_blocks" {
   description = "value of public destination cidr"
-  type        = string
+  type        = list(string)
 }
 
 # mssql Port

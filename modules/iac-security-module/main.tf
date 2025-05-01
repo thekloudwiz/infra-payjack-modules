@@ -111,21 +111,21 @@ resource "aws_security_group" "alb_sg" {
     from_port   = var.http_port
     to_port     = var.http_port
     protocol    = "tcp"
-    cidr_blocks = [var.public_destination_cidr]
+    cidr_blocks = var.allowed_cidr_blocks
   }
 
   ingress {
     from_port   = var.https_port
     to_port     = var.https_port
     protocol    = "tcp"
-    cidr_blocks = [var.public_destination_cidr]
+    cidr_blocks = var.allowed_cidr_blocks
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [var.public_destination_cidr]
+    cidr_blocks = var.allowed_cidr_blocks
   }
 
   tags = merge(local.common_tags, {
@@ -168,7 +168,7 @@ resource "aws_security_group" "ecs_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [var.public_destination_cidr]
+    cidr_blocks = var.allowed_cidr_blocks
   }
 
   tags = merge(local.common_tags, {
@@ -207,7 +207,7 @@ resource "aws_security_group" "mssql_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [var.public_destination_cidr]
+    cidr_blocks = var.allowed_cidr_blocks
   }
 
   tags = merge(local.common_tags, {
@@ -232,7 +232,7 @@ resource "aws_security_group" "postgres_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [var.public_destination_cidr]
+    cidr_blocks = var.allowed_cidr_blocks
   }
 
   tags = merge(local.common_tags, {
@@ -257,7 +257,7 @@ resource "aws_security_group" "valkey_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [var.public_destination_cidr]
+    cidr_blocks = var.allowed_cidr_blocks
   }
 
   tags = merge(local.common_tags, {
@@ -283,7 +283,7 @@ resource "aws_security_group" "kafka_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [var.public_destination_cidr]
+    cidr_blocks = var.allowed_cidr_blocks
   }
 
   tags = merge(local.common_tags, {

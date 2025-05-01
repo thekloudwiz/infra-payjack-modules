@@ -196,17 +196,17 @@ output "ec2_instance_id" {
   value       = module.compute.jump_box_id
 }
 
-# Output ECS Cluster ARN
-output "ecs_cluster_arn" {
-  description = "ARN of ECS cluster"
-  value       = module.compute.ecs_cluster_arn
-}
+# # Output ECS Cluster ARN
+# output "ecs_cluster_arn" {
+#   description = "ARN of ECS cluster"
+#   value       = module.compute.ecs_cluster_arn
+# }
 
-# Output ECS Cluster ID
-output "ecs_cluster_id" {
-  description = "ID of ECS cluster"
-  value       = module.compute.ecs_cluster_id
-}
+# # Output ECS Cluster ID
+# output "ecs_cluster_id" {
+#   description = "ID of ECS cluster"
+#   value       = module.compute.ecs_cluster_id
+# }
 
 
 

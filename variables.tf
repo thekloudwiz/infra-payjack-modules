@@ -40,9 +40,9 @@ variable "allowed_cidr_blocks" {
   type        = list(string)
 }
 
-# Public Route
-variable "public_route_table_destination_cidr" {
-  description = "Destination CIDR block for public subnet route table"
+# RTB CIDR Block
+variable "rtb_cidr_block" {
+  description = "List of allowed CIDR blocks for ALB access"
   type        = string
 }
 
@@ -74,12 +74,6 @@ variable "http_port" {
 variable "https_port" {
   description = "value of https port"
   type        = number
-}
-
-# Public Destination CIDR
-variable "public_destination_cidr" {
-  description = "value of public destination cidr"
-  type        = string
 }
 
 # mssql Port
