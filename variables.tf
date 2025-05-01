@@ -183,54 +183,54 @@ variable "ec2_instance_type" {
   type        = string
 }
 
-# Container Port
-variable "container_port" {
-  description = "Port for the container"
-  type        = number
-}
+# # Container Port
+# variable "container_port" {
+#   description = "Port for the container"
+#   type        = number
+# }
 
-# App Version
-variable "app_version" {
-  description = "The version of the application"
-  type        = string
-  default     = "1.0.0"
-}
+# # App Version
+# variable "app_version" {
+#   description = "The version of the application"
+#   type        = string
+#   default     = "1.0.0"
+# }
 
-# Task Definition CPU
-variable "task_cpu" {
-  description = "CPu allocation for Task Definition"
-  type        = number
-}
+# # Task Definition CPU
+# variable "task_cpu" {
+#   description = "CPu allocation for Task Definition"
+#   type        = number
+# }
 
-# Memory Allocation for Task Definition
-variable "task_memory" {
-  description = "Memory allocation for Task Definition"
-  type        = number
-}
+# # Memory Allocation for Task Definition
+# variable "task_memory" {
+#   description = "Memory allocation for Task Definition"
+#   type        = number
+# }
 
-# Container User
-variable "container_user" {
-  description = "User for the container"
-  type        = string
-}
+# # Container User
+# variable "container_user" {
+#   description = "User for the container"
+#   type        = string
+# }
 
-# ECS Maximum Capacity
-variable "ecs_max_capacity" {
-  description = "Maximum capacity for the ECS cluster"
-  type        = number
-}
+# # ECS Maximum Capacity
+# variable "ecs_max_capacity" {
+#   description = "Maximum capacity for the ECS cluster"
+#   type        = number
+# }
 
-# CPU Target Value
-variable "cpu_target_value" {
-  description = "Target value for CPU utilization"
-  type        = number
-}
+# # CPU Target Value
+# variable "cpu_target_value" {
+#   description = "Target value for CPU utilization"
+#   type        = number
+# }
 
-# Memory Target Value
-variable "memory_target_value" {
-  description = "Target value for memory utilization"
-  type        = number
-}
+# # Memory Target Value
+# variable "memory_target_value" {
+#   description = "Target value for memory utilization"
+#   type        = number
+# }
 
 # DB Instance Class
 variable "db_instance_class" {

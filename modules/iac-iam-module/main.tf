@@ -14,18 +14,18 @@ locals {
 
 # Local variables for resource names
 locals {
-  ec2_profile_name               = "${local.name_prefix}-ec2-profile"
-  ec2_role_name                  = "${local.name_prefix}-ec2-role"
-  app_role_name                  = "${local.name_prefix}-app-role"
-  app_s3_policy_name             = "${local.name_prefix}-app-s3-policy"
-  ec2_assume_role_policy_name    = "${local.name_prefix}-ec2-assume-role-policy"
-  ecs_task_assume_role_name      = "${local.name_prefix}-ecs-task-execution-role"
-  ecs_task_execution_policy_name = "${local.name_prefix}-ecs-task-execution-role-policy"
-  ecr_pull_policy_name           = "${local.name_prefix}-ecr-pull-policy"
-  task_role_name                 = "${local.name_prefix}-task-role"
-  ecs_execution_role_name        = "${local.name_prefix}-ecs-execution-role"
-  ecs_task_execution_role_name   = "${local.name_prefix}-ecs-task-execution-role"
-  rds_native_backup_role_name = "${local.name_prefix}-rds-nativebackup-role"
+  ec2_profile_name                  = "${local.name_prefix}-ec2-profile"
+  ec2_role_name                     = "${local.name_prefix}-ec2-role"
+  app_role_name                     = "${local.name_prefix}-app-role"
+  app_s3_policy_name                = "${local.name_prefix}-app-s3-policy"
+  ec2_assume_role_policy_name       = "${local.name_prefix}-ec2-assume-role-policy"
+  ecs_task_assume_role_name         = "${local.name_prefix}-ecs-task-execution-role"
+  ecs_task_execution_policy_name    = "${local.name_prefix}-ecs-task-execution-role-policy"
+  ecr_pull_policy_name              = "${local.name_prefix}-ecr-pull-policy"
+  task_role_name                    = "${local.name_prefix}-task-role"
+  ecs_execution_role_name           = "${local.name_prefix}-ecs-execution-role"
+  ecs_task_execution_role_name      = "${local.name_prefix}-ecs-task-execution-role"
+  rds_native_backup_role_name       = "${local.name_prefix}-rds-nativebackup-role"
   rds_enhanced_monitoring_role_name = "${local.name_prefix}-rds-enhanced-monitoring-role"
 }
 
@@ -257,5 +257,5 @@ resource "aws_ssm_parameter" "rds_nativebackup_role_arn" {
 
   tags = local.common_tags
 
-  depends_on = [ aws_iam_role.rds_nativebackup_role ]
+  depends_on = [aws_iam_role.rds_nativebackup_role]
 }

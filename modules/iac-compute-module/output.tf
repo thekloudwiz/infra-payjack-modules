@@ -13,12 +13,12 @@ output "jump_box_id" {
   value = aws_instance.jump_box.id
 }
 
-# Output ECS Cluster ARN
-output "ecs_cluster_arn" {
-  value = aws_ecs_cluster.ecs_cluster.arn
-}
+# # Output ECS Cluster ARN
+# output "ecs_cluster_arn" {
+#   value = aws_ecs_cluster.ecs_cluster.arn
+# }
 
-# Output ECS Cluster ID
-output "ecs_cluster_id" {
-  value = aws_ecs_cluster.ecs_cluster.id
-}
+# # Output ECS Cluster ID
+# output "ecs_cluster_id" {
+#   value = aws_ecs_cluster.ecs_cluster.id
+# }

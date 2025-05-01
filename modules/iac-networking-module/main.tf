@@ -87,23 +87,23 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = merge(local.common_tags, {
-    Name                     = "${local.public_subnet_name}"
-    AName                    = "${local.public_subnet_name}-${data.aws_availability_zones.available.names[count.index]}"
+    Name  = "${local.public_subnet_name}"
+    AName = "${local.public_subnet_name}-${data.aws_availability_zones.available.names[count.index]}"
     Type  = "Public"
   })
 }
 
 # Create 3 private App subnets
 resource "aws_subnet" "app_private" {
-  count             = var.availability_zones_count 
+  count             = var.availability_zones_count
   vpc_id            = aws_vpc.main.id
   cidr_block        = local.app_subnet_cidrs[count.index]
   availability_zone = element(data.aws_availability_zones.available.names, count.index)
 
   tags = merge(local.common_tags, {
-    Name                     = "${local.app_subnet_name}"
-    AName                    = "${local.app_subnet_name}-${data.aws_availability_zones.available.names[count.index]}"
-    "Type"                   = "Private"
+    Name   = "${local.app_subnet_name}"
+    AName  = "${local.app_subnet_name}-${data.aws_availability_zones.available.names[count.index]}"
+    "Type" = "Private"
   })
 }
 

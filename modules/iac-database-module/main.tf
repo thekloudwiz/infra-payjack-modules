@@ -193,7 +193,7 @@ data "aws_iam_role" "rds_nativebackup_role_arn" {
 
 # Create Options Group for RDS MSSQL
 resource "aws_db_option_group" "mssql" {
-  name                     = "${local.mssql_db_option_group_name}"
+  name                     = local.mssql_db_option_group_name
   engine_name              = var.mssql_db_engine
   major_engine_version     = "15.00"
   option_group_description = "MSSQL Option Group for ${local.name_prefix}"
@@ -248,7 +248,7 @@ resource "aws_db_instance" "mssql" {
   password                     = local.mssql_db_creds.password
   vpc_security_group_ids       = [data.aws_ssm_parameter.mssql_sg_id.value]
   db_subnet_group_name         = aws_db_subnet_group.mssql.name
-  parameter_group_name = aws_db_parameter_group.mssql.name
+  parameter_group_name         = aws_db_parameter_group.mssql.name
   backup_retention_period      = 3
   skip_final_snapshot          = var.skip_final_snapshot
   storage_encrypted            = var.storage_encrypted
@@ -298,8 +298,8 @@ resource "aws_db_parameter_group" "postgres" {
   description = "Parameter Group for ${local.postgres_db_name}"
 
   parameter {
-    name  = "max_connections"
-    value = var.max_connections
+    name         = "max_connections"
+    value        = var.max_connections
     apply_method = "pending-reboot"
   }
 
@@ -316,14 +316,14 @@ resource "aws_db_instance" "postgres" {
   engine                 = var.postgres_db_engine
   instance_class         = var.db_instance_class
   allocated_storage      = var.db_storage_size
-  storage_encrypted = var.storage_encrypted
-  storage_type = var.storage_type
+  storage_encrypted      = var.storage_encrypted
+  storage_type           = var.storage_type
   db_name                = var.postgres_db_name
   username               = var.postgres_db_username
   password               = random_password.postgres.result
   vpc_security_group_ids = [data.aws_ssm_parameter.postgres_sg_id.value]
   db_subnet_group_name   = aws_db_subnet_group.postgres.name
-  parameter_group_name = aws_db_parameter_group.postgres.name
+  parameter_group_name   = aws_db_parameter_group.postgres.name
   skip_final_snapshot    = var.skip_final_snapshot
   publicly_accessible    = false
   multi_az               = var.multi_az

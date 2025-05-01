@@ -2,10 +2,10 @@
 region = "eu-west-1"
 
 # Project Name
-project_name = "payjack"
+project_name = "geekywiz"
 
 # Owner of the resources
-owner = "mimi"
+owner = "thekloudwiz"
 
 # Environment name
 environment = "dev"

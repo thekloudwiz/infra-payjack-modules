@@ -9,8 +9,10 @@
 .terraform/
 
 # Override files
-terraform.tfvars
+*_terraform.tfvars
 terraform.tfvars.json
+main_terraform.tfvars
+*.tfvars
 
 # Ignore sensitive variable definitions
 *.tfvars

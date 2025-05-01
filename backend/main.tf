@@ -1,6 +1,6 @@
 # Provider for AWS
 provider "aws" {
-  region  = var.region
+  region = var.region
   # profile = "my_aws_profile" # Optional: Specify your AWS profile if needed
 }
 

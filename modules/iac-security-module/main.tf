@@ -179,7 +179,7 @@ resource "aws_security_group" "ecs_sg" {
 # Create Security Group Rule to allow traffic from Proxy Subnets
 # to ECS Security Group on ports
 resource "aws_security_group_rule" "allow_proxy_subnets" {
-  description = "Allow traffic from proxy subnets"
+  description       = "Allow traffic from proxy subnets"
   type              = "ingress"
   from_port         = var.proxy_port_start
   to_port           = var.proxy_port_end

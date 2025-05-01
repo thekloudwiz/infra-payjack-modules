@@ -36,7 +36,7 @@ data "aws_ssm_parameter" "public_subnet_ids" {
 
 # Retrieve JumpBox Subnet from SSM Parameter Store
 data "aws_ssm_parameter" "jumpbox_subnet" {
-  name  = "/${local.name_prefix}/jumpbox_subnet"
+  name = "/${local.name_prefix}/jumpbox_subnet"
 }
 
 # Retrieve App Subnet IDS from SSM Parameter Store
@@ -111,6 +111,7 @@ locals {
 # ---------------------------------------------------------------------------------
 # Jump Box EC2 Instance
 # ---------------------------------------------------------------------------------
+
 # Create a Jump Box EC2 instance
 resource "aws_instance" "jump_box" {
   ami                  = data.aws_ami.ubuntu.id
@@ -142,6 +143,7 @@ resource "aws_instance" "jump_box" {
 # -----------------------------------------------------------------------------------------
 # ECS Resource Definitions
 # -----------------------------------------------------------------------------------------
+
 # Create KMS Key for ECR
 resource "aws_kms_key" "ecr_key" {
   description             = "KMS key for ${local.ecr_repository_name}"
@@ -249,235 +251,238 @@ resource "aws_service_discovery_service" "ecs" {
   }
 }
 
-# ECS Cluster
-resource "aws_ecs_cluster" "ecs_cluster" {
-  name = local.ecs_cluster_name
+# # ECS Cluster
+# resource "aws_ecs_cluster" "ecs_cluster" {
+#   name = local.ecs_cluster_name
 
-  #Enable container insights
-  setting {
-    name  = "containerInsights"
-    value = "enabled"
-  }
+#   #Enable container insights
+#   setting {
+#     name  = "containerInsights"
+#     value = "enabled"
+#   }
 
-  tags = merge(local.common_tags, {
-    Name        = local.ecs_cluster_name,
-    Environment = var.environment,
-    Project     = var.project_name,
-    Owner       = var.owner
-  })
-}
+#   tags = merge(local.common_tags, {
+#     Name        = local.ecs_cluster_name,
+#     Environment = var.environment,
+#     Project     = var.project_name,
+#     Owner       = var.owner
+#   })
+# }
 
-# ECS Task Definition
-resource "aws_ecs_task_definition" "task" {
-  family                   = local.task_family_name
-  requires_compatibilities = ["FARGATE"]
-  network_mode             = "awsvpc"
-  cpu                      = var.task_cpu
-  memory                   = var.task_memory
-  task_role_arn            = data.aws_ssm_parameter.ecs_task_role_arn.value
-  execution_role_arn       = data.aws_ssm_parameter.ecs_execution_role_arn.value
+# # ECS Task Definition
+# resource "aws_ecs_task_definition" "task" {
+#   family                   = local.task_family_name
+#   requires_compatibilities = ["FARGATE"]
+#   network_mode             = "awsvpc"
+#   cpu                      = var.task_cpu
+#   memory                   = var.task_memory
+#   task_role_arn            = data.aws_ssm_parameter.ecs_task_role_arn.value
+#   execution_role_arn       = data.aws_ssm_parameter.ecs_execution_role_arn.value
 
-  container_definitions = jsonencode([
-    {
-      name      = local.container_name
-      image     = "${aws_ecr_repository.ecr_repo.repository_url}:latest"
-      cpu       = var.task_cpu
-      memory    = var.task_memory
-      user      = var.container_user
-      essential = true
+#   container_definitions = jsonencode([
+#     {
+#       name      = local.container_name
+#       image     = "${aws_ecr_repository.ecr_repo.repository_url}:latest"
+#       cpu       = var.task_cpu
+#       memory    = var.task_memory
+#       user      = var.container_user
+#       essential = true
 
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"             = "/ecs/${local.name_prefix}-group"
-          "awslogs-create-group"      = "true"
-          "awslogs-region"            = var.region
-          "awslogs-stream-prefix"     = "ecs"
-          "awslogs-multiline-pattern" = "^\\[\\d{4}-\\d{2}-\\d{2}" # For better log parsing
-        }
-      }
+#       logConfiguration = {
+#         logDriver = "awslogs"
+#         options = {
+#           "awslogs-group"             = "/ecs/${local.name_prefix}-group"
+#           "awslogs-create-group"      = "true"
+#           "awslogs-region"            = var.region
+#           "awslogs-stream-prefix"     = "ecs"
+#           "awslogs-multiline-pattern" = "^\\[\\d{4}-\\d{2}-\\d{2}" # For better log parsing
+#         }
+#       }
 
-      portMappings = [
-        {
-          containerPort = var.container_port
-          hostPort      = var.container_port
-          protocol      = "tcp"
-        }
-      ]
+#       portMappings = [
+#         {
+#           containerPort = var.container_port
+#           hostPort      = var.container_port
+#           protocol      = "tcp"
+#         }
+#       ]
 
-      healthCheck = {
-        command = [
-          "CMD-SHELL",
-          "curl -f http://localhost:${var.container_port}/health || exit 1"
-        ]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 60
-      }
+#       healthCheck = {
+#         command = [
+#           "CMD-SHELL",
+#           "curl -f http://localhost:${var.container_port}/health || exit 1"
+#         ]
+#         interval    = 30
+#         timeout     = 5
+#         retries     = 3
+#         startPeriod = 60
+#       }
 
-      # Enhanced container security settings
-      readonlyRootFilesystem = true
-      privileged             = false
+#       # Enhanced container security settings
+#       readonlyRootFilesystem = true
+#       privileged             = false
 
-      linuxParameters = {
-        initProcessEnabled = true
-        capabilities = {
-          drop = ["ALL"]
-        }
-      }
+#       linuxParameters = {
+#         initProcessEnabled = true
+#         capabilities = {
+#           drop = ["ALL"]
+#         }
+#       }
 
-      environment = [
-        {
-          name  = "NODE_ENV"
-          value = var.environment
-        },
-        {
-          name  = "APP_VERSION"
-          value = var.app_version
-        }
-      ]
+#       environment = [
+#         {
+#           name  = "NODE_ENV"
+#           value = var.environment
+#         },
+#         {
+#           name  = "APP_VERSION"
+#           value = var.app_version
+#         }
+#       ]
 
-      mountPoints = []
-      volumesFrom = []
-    }
-  ])
+#       mountPoints = []
+#       volumesFrom = []
+#     }
+#   ])
 
-  lifecycle {
-    ignore_changes = [
-      container_definitions,
-      task_role_arn,
-      execution_role_arn,
-    ]
-  }
+#   lifecycle {
+#     ignore_changes = [
+#       container_definitions,
+#       task_role_arn,
+#       execution_role_arn,
+#     ]
+#   }
 
-  tags = merge(local.common_tags, {
-    Name        = local.task_family_name,
-    Environment = var.environment,
-    Project     = var.project_name,
-    Owner       = var.owner
-  })
-}
+#   tags = merge(local.common_tags, {
+#     Name        = local.task_family_name,
+#     Environment = var.environment,
+#     Project     = var.project_name,
+#     Owner       = var.owner
+#   })
+# }
 
-# ECS Service with Auto Scaling
-resource "aws_ecs_service" "ecs_service" {
-  name                               = local.ecs_service_name
-  cluster                            = aws_ecs_cluster.ecs_cluster.arn
-  task_definition                    = aws_ecs_task_definition.task.arn
-  launch_type                        = "FARGATE"
-  deployment_maximum_percent         = 200
-  deployment_minimum_healthy_percent = 100
-  force_new_deployment               = true
+# # ECS Service with Auto Scaling
+# resource "aws_ecs_service" "ecs_service" {
+#   name                               = local.ecs_service_name
+#   cluster                            = aws_ecs_cluster.ecs_cluster.arn
+#   task_definition                    = aws_ecs_task_definition.task.arn
+#   launch_type                        = "FARGATE"
+#   deployment_maximum_percent         = 200
+#   deployment_minimum_healthy_percent = 100
+#   force_new_deployment               = true
 
-  network_configuration {
-    subnets          = split(",", data.aws_ssm_parameter.app_subnet_ids.value)
-    security_groups  = [data.aws_ssm_parameter.ecs_sg_id.value]
-    assign_public_ip = false
+#   network_configuration {
+#     subnets          = split(",", data.aws_ssm_parameter.app_subnet_ids.value)
+#     security_groups  = [data.aws_ssm_parameter.ecs_sg_id.value]
+#     assign_public_ip = false
 
-  }
+#   }
 
-  load_balancer {
-    target_group_arn = data.aws_ssm_parameter.alb_target_group_arn.value
-    container_name   = local.container_name
-    container_port   = var.container_port
-  }
+#   load_balancer {
+#     target_group_arn = data.aws_ssm_parameter.alb_target_group_arn.value
+#     container_name   = local.container_name
+#     container_port   = var.container_port
+#   }
 
-  deployment_controller {
-    type = "ECS"
-  }
-  desired_count = var.availability_zones_count
+#   deployment_controller {
+#     type = "ECS"
+#   }
+#   desired_count = var.availability_zones_count
 
-  lifecycle {
-    ignore_changes = [desired_count]
-  }
+#   lifecycle {
+#     ignore_changes = [desired_count]
+#   }
 
-  enable_execute_command = false
+#   enable_execute_command = false
 
-  service_registries {
-    registry_arn = aws_service_discovery_service.ecs.arn
-  }
+#   service_registries {
+#     registry_arn = aws_service_discovery_service.ecs.arn
+#   }
 
-  tags = merge(local.common_tags, {
-    Name        = local.ecs_service_name,
-    Environment = var.environment,
-    Project     = var.project_name,
-    Owner       = var.owner
-  })
-}
+#   tags = merge(local.common_tags, {
+#     Name        = local.ecs_service_name,
+#     Environment = var.environment,
+#     Project     = var.project_name,
+#     Owner       = var.owner
+#   })
+# }
 
-# Auto Scaling Configuration
-resource "aws_appautoscaling_target" "ecs_scaling_target" {
-  max_capacity       = var.ecs_max_capacity
-  min_capacity       = var.availability_zones_count
-  resource_id        = "service/${aws_ecs_cluster.ecs_cluster.name}/${aws_ecs_service.ecs_service.name}"
-  scalable_dimension = "ecs:service:DesiredCount"
-  service_namespace  = "ecs"
-}
+# # Auto Scaling Configuration
+# resource "aws_appautoscaling_target" "ecs_scaling_target" {
+#   max_capacity       = var.ecs_max_capacity
+#   min_capacity       = var.availability_zones_count
+#   resource_id        = "service/${aws_ecs_cluster.ecs_cluster.name}/${aws_ecs_service.ecs_service.name}"
+#   scalable_dimension = "ecs:service:DesiredCount"
+#   service_namespace  = "ecs"
+# }
 
-# CPU-based Auto Scaling
-resource "aws_appautoscaling_policy" "cpu_scaling" {
-  name               = "${local.name_prefix}-cpu-scaling"
-  policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.ecs_scaling_target.resource_id
-  scalable_dimension = aws_appautoscaling_target.ecs_scaling_target.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.ecs_scaling_target.service_namespace
+# # CPU-based Auto Scaling
+# resource "aws_appautoscaling_policy" "cpu_scaling" {
+#   name               = "${local.name_prefix}-cpu-scaling"
+#   policy_type        = "TargetTrackingScaling"
+#   resource_id        = aws_appautoscaling_target.ecs_scaling_target.resource_id
+#   scalable_dimension = aws_appautoscaling_target.ecs_scaling_target.scalable_dimension
+#   service_namespace  = aws_appautoscaling_target.ecs_scaling_target.service_namespace
 
-  target_tracking_scaling_policy_configuration {
-    target_value       = var.cpu_target_value
-    scale_in_cooldown  = 300
-    scale_out_cooldown = 300
+#   target_tracking_scaling_policy_configuration {
+#     target_value       = var.cpu_target_value
+#     scale_in_cooldown  = 300
+#     scale_out_cooldown = 300
 
-    predefined_metric_specification {
-      predefined_metric_type = "ECSServiceAverageCPUUtilization"
-    }
-  }
-}
+#     predefined_metric_specification {
+#       predefined_metric_type = "ECSServiceAverageCPUUtilization"
+#     }
+#   }
+# }
 
-# Memory-based Auto Scaling
-resource "aws_appautoscaling_policy" "memory_scaling" {
-  name               = "${local.name_prefix}-memory-scaling"
-  policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.ecs_scaling_target.resource_id
-  scalable_dimension = aws_appautoscaling_target.ecs_scaling_target.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.ecs_scaling_target.service_namespace
+# # Memory-based Auto Scaling
+# resource "aws_appautoscaling_policy" "memory_scaling" {
+#   name               = "${local.name_prefix}-memory-scaling"
+#   policy_type        = "TargetTrackingScaling"
+#   resource_id        = aws_appautoscaling_target.ecs_scaling_target.resource_id
+#   scalable_dimension = aws_appautoscaling_target.ecs_scaling_target.scalable_dimension
+#   service_namespace  = aws_appautoscaling_target.ecs_scaling_target.service_namespace
 
-  target_tracking_scaling_policy_configuration {
-    target_value       = var.memory_target_value
-    scale_in_cooldown  = 300
-    scale_out_cooldown = 300
+#   target_tracking_scaling_policy_configuration {
+#     target_value       = var.memory_target_value
+#     scale_in_cooldown  = 300
+#     scale_out_cooldown = 300
 
-    predefined_metric_specification {
-      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
-    }
-  }
-}
+#     predefined_metric_specification {
+#       predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+#     }
+#   }
+# }
 
+# ------------------------------------------------------------------------------------------
+# Store ARNs in SSM Parameter Store
 #-------------------------------------------------------------------------------------------
-# Store Cluster ARN
-resource "aws_ssm_parameter" "ecs_cluster_arn" {
-  name       = "/${local.name_prefix}/ecs_cluster_arn"
-  type       = "String"
-  value      = aws_ecs_cluster.ecs_cluster.arn
-  tags       = local.common_tags
-  depends_on = [aws_ecs_cluster.ecs_cluster]
 
-}
+# # Store Cluster ARN
+# resource "aws_ssm_parameter" "ecs_cluster_arn" {
+#   name       = "/${local.name_prefix}/ecs_cluster_arn"
+#   type       = "String"
+#   value      = aws_ecs_cluster.ecs_cluster.arn
+#   tags       = local.common_tags
+#   depends_on = [aws_ecs_cluster.ecs_cluster]
 
-# Store ECS Cluster ID
-resource "aws_ssm_parameter" "ecs_cluster_id" {
-  name       = "/${local.name_prefix}/ecs_cluster_id"
-  type       = "String"
-  value      = aws_ecs_cluster.ecs_cluster.id
-  tags       = local.common_tags
-  depends_on = [aws_ecs_cluster.ecs_cluster]
+# }
 
-}
+# # Store ECS Cluster ID
+# resource "aws_ssm_parameter" "ecs_cluster_id" {
+#   name       = "/${local.name_prefix}/ecs_cluster_id"
+#   type       = "String"
+#   value      = aws_ecs_cluster.ecs_cluster.id
+#   tags       = local.common_tags
+#   depends_on = [aws_ecs_cluster.ecs_cluster]
 
-# Store ECS Task Definition ARN
-resource "aws_ssm_parameter" "ecs_task_definition_arn" {
-  name       = "/${local.name_prefix}/ecs_task_definition_arn"
-  type       = "String"
-  value      = aws_ecs_task_definition.task.arn
-  tags       = local.common_tags
-  depends_on = [aws_ecs_task_definition.task]
-}
+# }
+
+# # Store ECS Task Definition ARN
+# resource "aws_ssm_parameter" "ecs_task_definition_arn" {
+#   name       = "/${local.name_prefix}/ecs_task_definition_arn"
+#   type       = "String"
+#   value      = aws_ecs_task_definition.task.arn
+#   tags       = local.common_tags
+#   depends_on = [aws_ecs_task_definition.task]
+# }

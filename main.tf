@@ -30,9 +30,9 @@ module "security" {
   mssql_port              = var.mssql_port
   http_port               = var.http_port
   https_port              = var.https_port
-  proxy_port_start = var.proxy_port_start
-  proxy_port_end   = var.proxy_port_end
-  proxy_cidr_blocks = var.proxy_cidr_blocks
+  proxy_port_start        = var.proxy_port_start
+  proxy_port_end          = var.proxy_port_end
+  proxy_cidr_blocks       = var.proxy_cidr_blocks
   my_ip                   = var.my_ip
   valkey_port             = var.valkey_port
   kafka_port              = var.kafka_port
@@ -82,21 +82,21 @@ module "load_balancer" {
 
 # Create Compute Module
 module "compute" {
-  source                   = "./modules/iac-compute-module"
-  region                   = var.region
-  key_name                 = var.key_name
-  ec2_instance_type        = var.ec2_instance_type
-  project_name             = var.project_name
-  managed_by               = var.managed_by
-  owner                    = var.owner
-  environment              = var.environment
-  container_port           = var.container_port
-  container_user           = var.container_user
-  task_cpu                 = var.task_cpu
-  task_memory              = var.task_memory
-  cpu_target_value         = var.cpu_target_value
-  memory_target_value      = var.memory_target_value
-  ecs_max_capacity         = var.ecs_max_capacity
+  source            = "./modules/iac-compute-module"
+  region            = var.region
+  key_name          = var.key_name
+  ec2_instance_type = var.ec2_instance_type
+  project_name      = var.project_name
+  managed_by        = var.managed_by
+  owner             = var.owner
+  environment       = var.environment
+  # container_port           = var.container_port
+  # container_user           = var.container_user
+  # task_cpu                 = var.task_cpu
+  # task_memory              = var.task_memory
+  # cpu_target_value         = var.cpu_target_value
+  # memory_target_value      = var.memory_target_value
+  # ecs_max_capacity         = var.ecs_max_capacity
   availability_zones_count = var.availability_zones_count
 
   depends_on = [module.load_balancer]
@@ -104,32 +104,32 @@ module "compute" {
 
 # Create Database Module
 module "database" {
-  source                   = "./modules/iac-database-module"
-  rds_native_backup_role_arn = module.iam.rds_native_backup_iam_role_arn
-  db_instance_class        = var.db_instance_class
-  mssql_db_engine          = var.mssql_db_engine
-  db_storage_size          = var.db_storage_size
-  mssql_db_username        = var.mssql_db_username
-  mssql_db_name            = var.mssql_db_name
-  mssql_parameter_group_family = var.mssql_parameter_group_family
+  source                          = "./modules/iac-database-module"
+  rds_native_backup_role_arn      = module.iam.rds_native_backup_iam_role_arn
+  db_instance_class               = var.db_instance_class
+  mssql_db_engine                 = var.mssql_db_engine
+  db_storage_size                 = var.db_storage_size
+  mssql_db_username               = var.mssql_db_username
+  mssql_db_name                   = var.mssql_db_name
+  mssql_parameter_group_family    = var.mssql_parameter_group_family
   postgres_parameter_group_family = var.postgres_parameter_group_family
-  max_connections = var.max_connections
-  max_num_parallelism = var.max_num_parallelism
-  max_threshold_parallelism = var.max_threshold_parallelism
-  postgres_db_engine       = var.postgres_db_engine
-  postgres_db_username     = var.postgres_db_username
-  postgres_db_name         = var.postgres_db_name
-  skip_final_snapshot      = var.skip_final_snapshot
-  mssql_port               = var.mssql_port
-  multi_az                 = var.multi_az
-  db_max_allocated_storage = var.db_max_allocated_storage
-  storage_type             = var.storage_type
-  storage_encrypted        = var.storage_encrypted
-  environment              = var.environment
-  project_name             = var.project_name
-  managed_by               = var.managed_by
-  owner                    = var.owner
-  region                   = var.region
+  max_connections                 = var.max_connections
+  max_num_parallelism             = var.max_num_parallelism
+  max_threshold_parallelism       = var.max_threshold_parallelism
+  postgres_db_engine              = var.postgres_db_engine
+  postgres_db_username            = var.postgres_db_username
+  postgres_db_name                = var.postgres_db_name
+  skip_final_snapshot             = var.skip_final_snapshot
+  mssql_port                      = var.mssql_port
+  multi_az                        = var.multi_az
+  db_max_allocated_storage        = var.db_max_allocated_storage
+  storage_type                    = var.storage_type
+  storage_encrypted               = var.storage_encrypted
+  environment                     = var.environment
+  project_name                    = var.project_name
+  managed_by                      = var.managed_by
+  owner                           = var.owner
+  region                          = var.region
 
   depends_on = [module.networking, module.security, module.storage, module.iam]
 }

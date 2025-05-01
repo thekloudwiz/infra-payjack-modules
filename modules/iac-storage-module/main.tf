@@ -22,21 +22,18 @@ locals {
   alb_logs_bucket_name = "${local.name_prefix}-alb-logs-bucket"
 }
 
-##############################################################################
-
-# Generate a random string for ALB logs bucket name suffix
-resource "random_id" "random_string" {
-  byte_length = 4
-}
+# -------------------------------------------------------------------
+# Create ALB Logs Bucket and Associated Configurations
+# -------------------------------------------------------------------
 
 # Create S3 bucket for ALB logs
 resource "aws_s3_bucket" "alb_logs" {
-  bucket        = "${local.alb_logs_bucket_name}-${random_id.random_string.hex}"
+  bucket        = local.alb_logs_bucket_name
   force_destroy = true
 
   tags = merge(local.common_tags, {
-    Name = "${local.alb_logs_bucket_name}-${random_id.random_string.hex}"
-    })
+    Name = "${local.alb_logs_bucket_name}"
+  })
 }
 
 # Block public access
@@ -97,6 +94,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
   }
 }
 
+# -------------------------------------------------------------------
+# Save Bucket name in SSM Parameter Store
+# -------------------------------------------------------------------
 
 # Save Logs Bucket name in SSM Parameter Store
 resource "aws_ssm_parameter" "alb_logs_bucket_name" {
